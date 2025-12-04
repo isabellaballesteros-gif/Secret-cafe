@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Cafe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            width: 100vw;
+            height: 100vh;
+            background-size: contain;
+            background-position: center center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease;
+            overflow: hidden;
+            background-color: black;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Cat cafe background */
+        body {
+            background-image: url('https://i.postimg.cc/vTb4g0p6/Catcafe.png');
+        }
+        
+        @media (max-width: 768px) {
+            /* On small screens, shrink and tuck sound controls closer to the corner */
+            .music-controls {
+                width: min(60vw, 200px);
+                right: 4vw;
+                padding: 10px 12px;
+            }
+            
+            #ambienceControls {
+                top: 6vh;
+                bottom: auto !important;
+            }
+            
+            .music-image {
+                width: min(32vw, 120px);
+            }
+        }
+        
+        .music-controls {
+            position: fixed;
+            /* Keep controls in the far right margin so they minimize overlap with the illustration */
+            bottom: 4vh;
+            right: 4vw;
+            z-index: 1002;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: min(50vw, 230px);
+            min-width: 0;
+            max-width: 230px;
+        }
+        
+        #ambienceControls {
+            /* Float ambience controls above music controls along the same edge */
+            top: 8vh;
+            bottom: auto !important;
+        }
+        
+        .music-image {
+            width: min(35vw, 180px);
+            height: auto;
+            object-fit: contain;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            transition: transform 0.3s ease;
+        }
+        
+        .music-image.rotating {
+            animation: rotate360 3s linear infinite;
+        }
+        
+        @keyframes rotate360 {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .music-title {
+            font-family: 'Nunito', sans-serif;
+            color: #000;
+            font-size: 1.2em;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .music-buttons-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .music-controls button {
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .music-controls button:hover {
+            background: #333;
+            transform: scale(1.05);
+        }
+        
+        .music-controls.hidden {
+            display: none;
+        }
+        
+        #pauseBtn, #resumeBtn {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="music-controls" id="musicControls">
+        <audio id="backgroundMusic" loop preload="auto"></audio>
+        <img id="musicImage" class="music-image" src="" alt="Music" style="display: none;">
+        <div class="music-title" id="musicTitle">Catsong</div>
+        <div class="music-buttons-container">
+            <button id="pauseBtn">Pause</button>
+            <button id="resumeBtn">Resume</button>
+        </div>
+    </div>
+    <div class="music-controls" id="ambienceControls" style="bottom: 320px;">
+        <audio id="backgroundAmbience" loop preload="auto"></audio>
+        <img id="ambienceImage" class="music-image" src="" alt="Ambience" style="display: none;">
+        <div class="music-title" id="ambienceTitle">Meowsound</div>
+        <div class="music-buttons-container">
+            <button id="ambiencePauseBtn">Pause</button>
+            <button id="ambienceResumeBtn">Resume</button>
+        </div>
+    </div>
+    <script>
+        // Fixed cat music setup
+        const selectedMusic = 'https://raw.githubusercontent.com/isabellaballesteros-gif/Catsong/refs/heads/main/catsong%20%E2%80%91%20Made%20with%20FlexClip.mp3';
+        const selectedMusicTitle = 'Catsong';
+        const selectedMusicImg = 'https://i.postimg.cc/CMPvhbGp/Catsong.png';
+        
+        const musicControls = document.getElementById('musicControls');
+        const musicTitle = document.getElementById('musicTitle');
+        const musicImage = document.getElementById('musicImage');
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        
+        // Show controls and configure music
+        musicControls.classList.remove('hidden');
+        musicTitle.textContent = selectedMusicTitle;
+        
+        // Set music image
+        musicImage.src = selectedMusicImg;
+        musicImage.style.display = 'block';
+        musicImage.alt = selectedMusicTitle;
+        
+        // Simple GitHub raw URL loading
+        backgroundMusic.src = selectedMusic;
+        backgroundMusic.volume = 0.2;
+        backgroundMusic.load();
+        
+        function updateButtonState() {
+            if (backgroundMusic.paused) {
+                musicControls.classList.remove('music-playing');
+                musicControls.classList.add('music-paused');
+                musicImage.classList.remove('rotating');
+            } else {
+                musicControls.classList.remove('music-paused');
+                musicControls.classList.add('music-playing');
+                musicImage.classList.add('rotating');
+            }
+        }
+        
+        backgroundMusic.addEventListener('canplay', function onCanPlay() {
+            backgroundMusic.removeEventListener('canplay', onCanPlay);
+            const playPromise = backgroundMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    updateButtonState();
+                }).catch(() => {
+                    // Autoplay might be blocked; wait for user interaction
+                });
+            }
+        }, { once: true });
+        
+        backgroundMusic.addEventListener('play', updateButtonState);
+        backgroundMusic.addEventListener('pause', updateButtonState);
+        
+        pauseBtn.addEventListener('click', function() {
+            backgroundMusic.pause();
+            updateButtonState();
+        });
+        
+        resumeBtn.addEventListener('click', function() {
+            if (backgroundMusic.readyState >= 2) {
+                backgroundMusic.play().then(updateButtonState);
+            } else {
+                backgroundMusic.load();
+                setTimeout(() => {
+                    backgroundMusic.play().then(updateButtonState);
+                }, 500);
+            }
+        });
+        
+        // Fixed cat ambience setup
+        const selectedAmbience = 'https://raw.githubusercontent.com/isabellaballesteros-gif/Meowsound/refs/heads/main/Untitled%20%E2%80%91%20Made%20with%20FlexClip%20(5).mp3';
+        const selectedAmbienceTitle = 'Meowsound';
+        const selectedAmbienceImg = 'https://i.postimg.cc/90n1Ljmr/Meowsound.png';
+        
+        const ambienceControls = document.getElementById('ambienceControls');
+        const ambienceTitle = document.getElementById('ambienceTitle');
+        const ambienceImage = document.getElementById('ambienceImage');
+        const backgroundAmbience = document.getElementById('backgroundAmbience');
+        const ambiencePauseBtn = document.getElementById('ambiencePauseBtn');
+        const ambienceResumeBtn = document.getElementById('ambienceResumeBtn');
+        
+        ambienceControls.classList.remove('hidden');
+        ambienceTitle.textContent = selectedAmbienceTitle;
+        
+        ambienceImage.src = selectedAmbienceImg;
+        ambienceImage.style.display = 'block';
+        ambienceImage.alt = selectedAmbienceTitle;
+        
+        backgroundAmbience.src = selectedAmbience;
+        backgroundAmbience.volume = 0.4;
+        backgroundAmbience.load();
+        
+        function updateAmbienceButtonState() {
+            if (backgroundAmbience.paused) {
+                ambienceControls.classList.remove('music-playing');
+                ambienceControls.classList.add('music-paused');
+                ambienceImage.classList.remove('rotating');
+            } else {
+                ambienceControls.classList.remove('music-paused');
+                ambienceControls.classList.add('music-playing');
+                ambienceImage.classList.add('rotating');
+            }
+        }
+        
+        backgroundAmbience.addEventListener('canplay', function onCanPlayAmbience() {
+            backgroundAmbience.removeEventListener('canplay', onCanPlayAmbience);
+            const playPromise = backgroundAmbience.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    updateAmbienceButtonState();
+                }).catch(() => {
+                    // Autoplay might be blocked; wait for user interaction
+                });
+            }
+        }, { once: true });
+        
+        backgroundAmbience.addEventListener('play', updateAmbienceButtonState);
+        backgroundAmbience.addEventListener('pause', updateAmbienceButtonState);
+        
+        ambiencePauseBtn.addEventListener('click', function() {
+            backgroundAmbience.pause();
+            updateAmbienceButtonState();
+        });
+        
+        ambienceResumeBtn.addEventListener('click', function() {
+            if (backgroundAmbience.readyState >= 2) {
+                backgroundAmbience.play().then(updateAmbienceButtonState);
+            } else {
+                backgroundAmbience.load();
+                setTimeout(() => {
+                    backgroundAmbience.play().then(updateAmbienceButtonState);
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>
